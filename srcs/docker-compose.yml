@@ -41,17 +41,6 @@ services:
     depends_on:
       - mariadb
 
-  minecraft:
-    container_name: minecraft
-    build: ./requirements/minecraft
-    restart: unless-stopped
-    volumes:
-      - minecraft:/minecraft
-    ports:
-      - "25565:25565"
-    networks:
-      - inception
-
 networks:
   inception:
     driver: bridge

@@ -24,13 +24,13 @@ header:
 	@echo "$(ORANGE)Starting Inception…$(RESET)"
 
 build:
-	@docker-compose -f srcs/docker-compose.yml build && \
+	@docker compose -f srcs/docker-compose.yml build && \
 	echo "" && \
 	echo "➡️  $(GREEN)\033[4mContainers built successfully ✅\033[0m$(RESET)" || \
 	echo "$(RED)➡️  Error while building containers$(RESET) ❌"
 
 up:
-	@docker-compose -f srcs/docker-compose.yml up -d && \
+	@docker compose -f srcs/docker-compose.yml up -d && \
 	echo "" && \
 	echo "➡️  $(GREEN)\033[4mContainers started successfully ✅\033[0m$(RESET)" || \
 	echo "$(RED)➡️  Error while starting containers$(RESET) ❌"
@@ -40,17 +40,15 @@ setup_volumes:
 	@if [ ! -d "/home/$(USER)/data" ]; then \
 		mkdir -p /home/$(USER)/data/wordpress && \
 		mkdir -p /home/$(USER)/data/mariadb; \
-		mkdir -p /home/$(USER)/data/minecraft; \
 	fi
 	@sudo chown -R $(USER):$(USER) /home/$(USER)/data/wordpress
 	@sudo chown -R $(USER):$(USER) /home/$(USER)/data/mariadb
 	@sudo chmod 755 /home/$(USER)/data/wordpress
 	@sudo chmod 755 /home/$(USER)/data/mariadb
-	@sudo chmod 755 /home/$(USER)/data/minecraft
 	@echo "➡️  $(GREEN)Volumes setup complete ✅$(RESET)"
 
 down:
-	@docker-compose -f srcs/docker-compose.yml down && \
+	@docker compose -f srcs/docker-compose.yml down && \
 	echo "" && \
 	echo "➡️  $(GREEN)\033[4mContainers stopped and removed 🗑️\033[0m$(RESET)" || \
 	echo "$(RED)➡️  Error while stopping containers$(RESET) ❌"
