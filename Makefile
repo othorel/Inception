@@ -1,7 +1,7 @@
 # Project variables
 PROJECT = inception
 EXERCISE = 42
-CONTAINERS = nginx wordpress mariadb
+CONTAINERS = nginx wordpress mariadb redis
 
 # Colors
 ORANGE = \033[0;33m
@@ -10,10 +10,10 @@ RED = \033[0;31m
 RESET = \033[0m
 
 # Dynamic info
-SRC_COUNT = 3
+SRC_COUNT = 4
 
 VOLUMES_PATH = $(HOME)/data
-VOLUME_DIRS = wordpress mariadb
+VOLUME_DIRS = wordpress mariadb redis
 
 all: header setup_volumes build up
 
@@ -37,14 +37,21 @@ up:
 
 setup_volumes:
 	@echo "$(ORANGE)Setting up data volumes...$(RESET)"
-	@if [ ! -d "/home/$(USER)/data" ]; then \
-		mkdir -p /home/$(USER)/data/wordpress && \
-		mkdir -p /home/$(USER)/data/mariadb; \
+	@if [ ! -d "$(VOLUMES_PATH)" ]; then \
+		mkdir -p $(VOLUMES_PATH)/wordpress && \
+		mkdir -p $(VOLUMES_PATH)/mariadb && \
+		mkdir -p $(VOLUMES_PATH)/redis; \
+	else \
+		for dir in $(VOLUME_DIRS); do \
+			if [ ! -d "$(VOLUMES_PATH)/$$dir" ]; then \
+				mkdir -p "$(VOLUMES_PATH)/$$dir"; \
+			fi; \
+		done; \
 	fi
-	@sudo chown -R $(USER):$(USER) /home/$(USER)/data/wordpress
-	@sudo chown -R $(USER):$(USER) /home/$(USER)/data/mariadb
-	@sudo chmod 755 /home/$(USER)/data/wordpress
-	@sudo chmod 755 /home/$(USER)/data/mariadb
+	@for dir in $(VOLUME_DIRS); do \
+		sudo chown -R $(USER):$(USER) "$(VOLUMES_PATH)/$$dir"; \
+		sudo chmod 755 "$(VOLUMES_PATH)/$$dir"; \
+	done
 	@echo "➡️  $(GREEN)Volumes setup complete ✅$(RESET)"
 
 down:
@@ -64,11 +71,12 @@ fclean: clean
 	@echo "$(ORANGE)Removing volume directories...$(RESET)"
 	@for dir in $(VOLUME_DIRS); do \
 		echo "Removing $$dir volume directory"; \
-		sudo rm -rf $(VOLUMES_PATH)/$$dir; \
+		sudo rm -rf "$(VOLUMES_PATH)/$$dir"; \
 	done
-	@sudo rm -rf $(VOLUMES_PATH)
-	@if [ -n "$(shell docker volume ls -q)" ]; then \
-		docker volume rm $(shell docker volume ls -q); \
+	@sudo rm -rf "$(VOLUMES_PATH)"
+	@volumes=$$(docker volume ls -q); \
+	if [ -n "$$volumes" ]; then \
+		docker volume rm $$volumes; \
 	fi
 	@echo "$(RED)All Docker resources cleaned$(RESET)"
 
