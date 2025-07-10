@@ -52,6 +52,30 @@ services:
     volumes:
       - redis_data:/data
 
+  ftp:
+    container_name: ftp
+    image: fauria/vsftpd
+    restart: unless-stopped
+    ports:
+      - "21:21"
+      - "20:20"
+      - "21100-21110:21100-21110"
+    environment:
+      FTP_USER: wordpress
+      FTP_PASS: wordpresspass
+      PASV_ADDRESS: 10.0.2.15
+
+      PASV_MIN_PORT: 21100
+      PASV_MAX_PORT: 21110
+      FILE_OPEN_MODE: 0777
+      LOCAL_UMASK: 000
+    volumes:
+      - wordpress:/home/wordpress/ftp
+    networks:
+      - inception
+    depends_on:
+      - wordpress
+
 networks:
   inception:
     driver: bridge

@@ -1,7 +1,7 @@
 # Project variables
 PROJECT = inception
 EXERCISE = 42
-CONTAINERS = nginx wordpress mariadb redis
+CONTAINERS = nginx wordpress mariadb redis ftp
 
 # Colors
 ORANGE = \033[0;33m
@@ -10,7 +10,7 @@ RED = \033[0;31m
 RESET = \033[0m
 
 # Dynamic info
-SRC_COUNT = 4
+SRC_COUNT = 5
 
 VOLUMES_PATH = $(HOME)/data
 VOLUME_DIRS = wordpress mariadb redis
