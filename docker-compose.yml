@@ -54,7 +54,6 @@ services:
       - .env
     build:
       context: ./srcs/requirements/bonus/ftp
-    image: ftp:inception
     volumes:
       - wordpress:/var/www/wordpress
     networks:
@@ -84,18 +83,13 @@ services:
     networks:
       - inception
 
-  lazydocker:
-    container_name: lazydocker
-    build: ./srcs/requirements/bonus/lazydocker
-    image: lazydocker:inception
-    restart: unless-stopped
+  quotes:
+    build: ./srcs/requirements/bonus/API
+    container_name: quotes
+    ports:
+      - "5000:5000"
     networks:
       - inception
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - /:/mnt/host:ro
-    stdin_open: true
-    tty: true
 
 networks:
   inception:
@@ -126,9 +120,3 @@ volumes:
       type: "none"
       o: "bind"
       device: "/home/${USER}/data/static_html"
-  lazydocker_data:
-    driver: local
-    driver_opts:
-      type: "none"
-      o: "bind"
-      device: "/home/${USER}/data/lazydocker"

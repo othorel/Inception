@@ -1,8 +1,8 @@
 # Project info
 PROJECT = inception
 EXERCISE = 42
-CONTAINERS = nginx wordpress mariadb redis ftp static_site adminer lazydocker
-VOLUME_DIRS = wordpress mariadb redis static_html lazydocker
+CONTAINERS = nginx wordpress mariadb redis ftp static_site adminer API
+VOLUME_DIRS = wordpress mariadb redis static_html API
 
 # Paths
 VOLUMES_PATH = $(HOME)/data
