@@ -105,8 +105,8 @@ services:
         - inception
     volumes:
         - adminer_data:/var/www/adminer
-    expose:
-        - 9000
+    ports:
+        - "8082:80"
 
   quotes:
     build: ./requirements/bonus/API

@@ -22,6 +22,6 @@ RUN \
 
 WORKDIR /var/www/html
 
-EXPOSE 9000
+EXPOSE 80
 
-ENTRYPOINT ["php-fpm7.4", "--nodaemonize"]
+ENTRYPOINT ["php", "-S", "0.0.0.0:80", "-t", "/var/www/adminer"]
