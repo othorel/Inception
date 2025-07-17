@@ -87,7 +87,7 @@ services:
     build: ./requirements/bonus/static_site
     restart: unless-stopped
     ports:
-      - "8080:80"
+      - "8081:80"
     networks:
       - inception
     volumes:
@@ -108,11 +108,15 @@ services:
     ports:
         - "8082:80"
 
-  quotes:
-    build: ./requirements/bonus/API
-    container_name: quotes
+  webserv:
+    build:
+      context: ./requirements/bonus/server
+      args:
+        DEBIAN_VERSION: bullseye-slim
+    container_name: webserv
     ports:
-      - "5000:5000"
+      - "8080:8000"
+    restart: unless-stopped
     networks:
       - inception
 

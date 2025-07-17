@@ -13,6 +13,6 @@ COPY html/ /var/www/html/
 COPY default.conf /etc/nginx/sites-available/default
 
 # Expose le port HTTP
-EXPOSE 80
+EXPOSE 81
 
 CMD ["nginx", "-g", "daemon off;"]
