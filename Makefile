@@ -1,88 +1,97 @@
-# Project info
-PROJECT = inception
-EXERCISE = 42
-CONTAINERS = nginx wordpress mariadb redis ftp static_site adminer API
-VOLUME_DIRS = wordpress mariadb redis static_html API
+include srcs/.env
 
-# Paths
-VOLUMES_PATH = $(HOME)/data
+COMPOSE_FILE = srcs/docker-compose.yml
+COMPOSE = docker compose -f $(COMPOSE_FILE)
 
-# Colors
-ORANGE = \033[0;33m
+# Volumes
+DB_VOLUME = /home/$(USER)/data/wordpress_db
+WP_VOLUME = /home/$(USER)/data/wordpress
+ADMINER_VOLUME = /home/$(USER)/data/adminer
+VOLUMES = $(DB_VOLUME) $(WP_VOLUME) $(ADMINER_VOLUME)
+
+# Couleurs
 GREEN = \033[0;32m
 RED = \033[0;31m
-CYAN = \033[38;5;39m
+ORANGE = \033[0;33m
 BLUE = \033[38;5;33m
-DARK = \033[38;5;63m
+CYAN = \033[38;5;39m
+PURPLE = \033[38;5;63m
 RESET = \033[0m
 
-# Main targets
-all: header setup_volumes build up
+# Projet info
+all: header hostsed_add build
 
 header:
 	@echo "$(CYAN)—————————————————————————————————————————————————————————$(RESET)"
-	@echo "$(BLUE)|   $(PROJECT)   |  $(EXERCISE)   |    make    |   $(words $(CONTAINERS)) services    |$(RESET)"
-	@echo "$(DARK)—————————————————————————————————————————————————————————$(RESET)"
-	@echo "$(ORANGE)Starting Inception…$(RESET)"
+	@echo "$(BLUE)|   $(PROJECT)   |  $(EXERCISE)   |    make    |   $(SRC_COUNT) services    |$(RESET)"
+	@echo "$(PURPLE)—————————————————————————————————————————————————————————$(RESET)"
+	@echo "$(ORANGE)🚀 Starting Inception...$(RESET)"
 
-setup_volumes:
-	@echo "$(ORANGE)Setting up data volumes...$(RESET)"
-	@mkdir -p $(VOLUMES_PATH)
-	@set -e; \
-	for dir in $(VOLUME_DIRS); do \
-		if [ ! -d "$(VOLUMES_PATH)/$$dir" ]; then \
-			echo "Creating volume directory: $(VOLUMES_PATH)/$$dir"; \
-			mkdir -p "$(VOLUMES_PATH)/$$dir"; \
-		fi; \
-		sudo chown -R $(USER):$(USER) "$(VOLUMES_PATH)/$$dir" || true; \
-		sudo chmod 755 "$(VOLUMES_PATH)/$$dir" || true; \
-	done
-	@echo "➡️  $(GREEN)Volumes setup complete ✅$(RESET)"
+# ------------------------------------------------------------------------
 
-build:
-	@echo "$(ORANGE)Building containers...$(RESET)"
-	@docker compose -f docker-compose.yml build && \
-	echo "" && \
-	echo "➡️  $(GREEN)\033[4mContainers built successfully ✅\033[0m$(RESET)" || \
-	(echo "$(RED)➡️  Error while building containers$(RESET) ❌" && exit 1)
+create_volume:
+	@echo "$(CYAN)📦 Creating local volumes...$(RESET)"
+	@mkdir -p $(VOLUMES)
 
-up: setup_volumes
-	@echo "$(ORANGE)Starting containers...$(RESET)"
-	@docker compose -f docker-compose.yml up -d && \
-	echo "" && \
-	echo "➡️  $(GREEN)\033[4mContainers started successfully ✅\033[0m$(RESET)" || \
-	(echo "$(RED)➡️  Error while starting containers$(RESET) ❌" && exit 1)
+delete_volume:
+	@echo "$(RED)🗑️  Deleting local volumes...$(RESET)"
+	@sudo rm -rf $(VOLUMES)
+
+check_hostsed:
+	@dpkg -s hostsed >/dev/null 2>&1 || (echo "$(ORANGE)📥 hostsed not found, installing...$(RESET)" && sudo apt update && sudo apt install -y hostsed)
+
+hostsed_add: check_hostsed
+	@sudo hostsed add 127.0.0.1 $(DOMAIN_NAME) > /dev/null
+	@echo "$(GREEN)🔗 $(DOMAIN_NAME) added to hosts.$(RESET)"
+
+hostsed_rm: check_hostsed
+	@sudo hostsed rm 127.0.0.1 $(DOMAIN_NAME) > /dev/null
+	@echo "$(RED)🔌 $(DOMAIN_NAME) removed from hosts.$(RESET)"
+
+# ------------------------------------------------------------------------
+
+build: create_volume
+	@echo "$(CYAN)🔧 Building containers...$(RESET)"
+	@$(COMPOSE) up --build -d
+
+up:
+	@echo "$(CYAN)⬆️  Starting services...$(RESET)"
+	@$(COMPOSE) up -d
 
 down:
-	@echo "$(ORANGE)Stopping containers...$(RESET)"
-	@docker compose -f docker-compose.yml down && \
-	echo "" && \
-	echo "➡️  $(GREEN)\033[4mContainers stopped and removed 🗑️\033[0m$(RESET)" || \
-	echo "$(RED)➡️  Error while stopping containers$(RESET) ❌"
+	@echo "$(RED)⬇️  Stopping services...$(RESET)"
+	@$(COMPOSE) down
 
-clean: down
-	@echo "$(ORANGE)Cleaning Docker system…$(RESET)"
-	@docker system prune -a -f
-	@echo "➡️  $(GREEN)System cleaned ✅$(RESET)"
+stop:
+	@echo "$(RED)⏹️  Stopping containers...$(RESET)"
+	@$(COMPOSE) stop
+	@echo "$(RED)🛑 Containers stopped.$(RESET)"
+
+start:
+	@echo "$(GREEN)▶️  Starting containers...$(RESET)"
+	@$(COMPOSE) start
+	@echo "$(GREEN)🟢 Containers started.$(RESET)"
+
+restart: stop start
+	@echo "$(ORANGE)🔁 Containers restarted.$(RESET)"
+
+# ------------------------------------------------------------------------
+
+clean: down delete_volume
+	@echo "$(RED)🧹 Cleaning Docker images...$(RESET)"
+	@docker rmi -f nginx:inception mariadb:inception wordpress:inception static:inception redis:inception adminer:inception ftp:inception lazydocker:inception 2>/dev/null || true
+	@echo "$(GREEN)✅ Clean complete.$(RESET)"
 
 fclean: clean
-	@echo "$(ORANGE)Removing volume directories...$(RESET)"
-	@set -e; \
-	for dir in $(VOLUME_DIRS); do \
-		if [ -d "$(VOLUMES_PATH)/$$dir" ]; then \
-			echo "Removing: $(VOLUMES_PATH)/$$dir"; \
-			sudo rm -rf "$(VOLUMES_PATH)/$$dir"; \
-		fi; \
-	done
-	@if [ -d "$(VOLUMES_PATH)" ]; then \
-		sudo rm -rf "$(VOLUMES_PATH)"; \
-	fi
-	@volumes=$$(docker volume ls -q); \
-	if [ -n "$$volumes" ]; then \
-		docker volume rm $$volumes; \
-	fi
-	@echo "$(RED)All Docker resources cleaned$(RESET)"
+	@echo "$(RED)💣 Full clean — removing volumes & networks...$(RESET)"
+	@docker volume prune -f
+	@docker network prune -f
+	@docker image prune -a -f
+	@echo "$(GREEN)🧨 Docker system reset complete.$(RESET)"
 
-re: fclean all
+re: clean build
+	@echo "$(GREEN)🔄 Rebuild finished.$(RESET)"
 
-.PHONY: all build up down clean fclean re header setup_volumes
+# ------------------------------------------------------------------------
+
+.PHONY: all hostsed_add hostsed_rm up down stop start restart re clean fclean create_volume delete_volume header

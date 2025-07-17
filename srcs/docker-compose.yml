@@ -1,0 +1,153 @@
+services:
+  nginx:
+      container_name: nginx
+      env_file:
+          - .env
+      build:
+          context: ./requirements/nginx
+      image: nginx:inception
+      depends_on:
+          - wordpress
+      networks:
+          - inception
+      volumes:
+          - wordpress_data:/var/www/wordpress
+          - adminer_data:/var/www/adminer
+      ports:
+          - 80:80
+          - 443:443
+      restart: unless-stopped
+
+  mariadb:
+      container_name: mariadb
+      env_file:
+          - .env
+      build:
+          context: ./requirements/mariadb
+          args:
+              DEBIAN_VERSION: ${DEBIAN_VERSION}
+      image: mariadb:inception
+      healthcheck:
+          test: ["CMD", "mysqladmin", "ping", "--silent"]
+          interval: 10s
+          timeout: 5s
+          retries: 5
+      volumes:
+          - wordpress_db:/var/lib/mysql
+      networks:
+          - inception
+      expose:
+          - 3306
+      restart: unless-stopped
+
+  wordpress:
+      container_name: wordpress
+      env_file:
+          - .env
+      build:
+          context: ./requirements/wordpress
+      image: wordpress:inception
+      depends_on:
+          mariadb:
+              condition: service_healthy
+      volumes:
+          - wordpress_data:/var/www/wordpress
+      networks:
+          - inception
+      expose:
+          - 9000
+      restart: unless-stopped
+
+  redis:
+    build: ./requirements/bonus/redis
+    container_name: redis
+    restart: always
+    networks:
+      - inception
+    expose:
+      - "6379"
+
+  ftp:
+    container_name: ftp
+    env_file:
+      - .env
+    build:
+      context: ./requirements/bonus/ftp
+    volumes:
+      - wordpress_data:/var/www/wordpress
+    networks:
+      - inception
+    ports:
+      - "21:21"
+      - "20:20"
+      - "21100-21110:21100-21110"
+
+  static_site:
+    container_name: static_site
+    build: ./requirements/bonus/static_site
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    networks:
+      - inception
+    volumes:
+      - static_html:/var/www/html
+
+  adminer:
+    container_name: adminer
+    image: adminer:inception
+    env_file:
+        - .env
+    build: 
+        context: ./requirements/bonus/adminer
+    restart: unless-stopped
+    networks:
+        - inception
+    volumes:
+        - adminer_data:/var/www/adminer
+    expose:
+        - 9000
+
+  quotes:
+    build: ./requirements/bonus/API
+    container_name: quotes
+    ports:
+      - "5000:5000"
+    networks:
+      - inception
+
+networks:
+  inception:
+    driver: bridge
+
+volumes:
+  wordpress_db:
+      driver: local
+      driver_opts:
+          type: none
+          o: bind
+          device: ${HOME}/data/wordpress_db
+  wordpress_data:
+      driver: local
+      driver_opts:
+          type: none
+          o: bind
+          device: ${HOME}/data/wordpress
+  redis_data:
+    driver: local
+    driver_opts:
+      type: "none"
+      o: "bind"
+      device: "/home/${USER}/data/redis"
+  static_html:
+    driver: local
+    driver_opts:
+      type: "none"
+      o: "bind"
+      device: "/home/${USER}/data/static_html"
+  adminer_data:
+    driver: local
+    driver_opts:
+        type: none
+        o: bind
+        device: ${HOME}/data/adminer

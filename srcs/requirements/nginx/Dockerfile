@@ -1,17 +1,31 @@
-FROM debian:oldstable
+ARG DEBIAN_VERSION
+FROM debian:${DEBIAN_VERSION:-bullseye-slim}
+# RUN adduser --disabled-password --gecos "" app
+# USER app
 
-RUN apt-get update && apt-get install -y nginx openssl
+RUN		apt update -y && \
+		apt install -y nginx openssl curl gettext-base && \
+		apt clean && \
+		rm -rf /var/lib/apt/lists/*
 
-RUN mkdir -p /etc/ssl/private /etc/ssl/certs /etc/nginx/ssl && \
-    openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-    -keyout /etc/ssl/private/nginx-selfsigned.key \
-    -out /etc/ssl/certs/nginx-selfsigned.crt \
-    -subj "/C=FR/ST=Paris/L=Paris/O=42/CN=olthorel.42.fr" && \
-    cp /etc/ssl/private/nginx-selfsigned.key /etc/nginx/ssl/nginx-selfsigned.key && \
-    cp /etc/ssl/certs/nginx-selfsigned.crt /etc/nginx/ssl/nginx-selfsigned.crt
+ARG LOGIN
+ARG DOMAIN_NAME
 
-COPY conf/nginx.conf /etc/nginx/nginx.conf
+RUN mkdir -p /etc/nginx/ssl
+
+ENV SSL_CERT=/etc/nginx/ssl/inception.crt
+ENV SSL_KEY=/etc/nginx/ssl/inception.key
+
+RUN openssl req -x509 -nodes -days 365 \
+	-out ${SSL_CERT} \ 
+	-keyout ${SSL_KEY} \
+	-subj "/C=FR/ST=IDF/L=Paris/O=42/OU=42/CN=${DOMAIN_NAME}/UID=${LOGIN}"
+
+COPY conf/nginx.conf.template /etc/nginx/nginx.conf.template
+RUN envsubst '${SSL_CERT} ${SSL_KEY} ${DOMAIN_NAME}' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf
+
+RUN chmod 755 /var/www/html
 
 EXPOSE 443
 
-CMD ["nginx", "-g", "daemon off;"]
+ENTRYPOINT ["nginx", "-g", "daemon off;"]
