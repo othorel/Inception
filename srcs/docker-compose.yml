@@ -1,11 +1,12 @@
+# Services (Containers)
 services:
   nginx:
       container_name: nginx
+      image: nginx:inception
       env_file:
           - .env
       build:
           context: ./requirements/nginx
-      image: nginx:inception
       depends_on:
           - wordpress
       networks:
@@ -20,13 +21,13 @@ services:
 
   mariadb:
       container_name: mariadb
+      image: mariadb:inception
       env_file:
           - .env
       build:
           context: ./requirements/mariadb
           args:
               DEBIAN_VERSION: ${DEBIAN_VERSION}
-      image: mariadb:inception
       healthcheck:
           test: ["CMD", "mysqladmin", "ping", "--silent"]
           interval: 10s
@@ -42,11 +43,11 @@ services:
 
   wordpress:
       container_name: wordpress
+      image: wordpress:inception
       env_file:
           - .env
       build:
           context: ./requirements/wordpress
-      image: wordpress:inception
       depends_on:
           mariadb:
               condition: service_healthy
@@ -58,8 +59,10 @@ services:
           - 9000
       restart: unless-stopped
 
+# Bonus Services (Containers)
   redis:
-    build: ./requirements/bonus/redis
+    build: ./requirements/bonus/redis-cache
+    image: redis:inception
     container_name: redis
     restart: always
     networks:
@@ -69,10 +72,11 @@ services:
 
   ftp:
     container_name: ftp
+    image: ftp:inception
     env_file:
       - .env
     build:
-      context: ./requirements/bonus/ftp
+      context: ./requirements/bonus/ftp-server
     volumes:
       - wordpress_data:/var/www/wordpress
     networks:
@@ -84,7 +88,8 @@ services:
 
   static_site:
     container_name: static_site
-    build: ./requirements/bonus/static_site
+    image: static-site:inception
+    build: ./requirements/bonus/static-website
     restart: unless-stopped
     ports:
       - "8081:80"
@@ -108,22 +113,30 @@ services:
     ports:
         - "8082:80"
 
-  webserv:
+  cadvisor:
+    container_name: cadvisor
+    image: cadvisor:inception
+    init: true
     build:
-      context: ./requirements/bonus/server
-      args:
-        DEBIAN_VERSION: bullseye-slim
-    container_name: webserv
-    ports:
-      - "8080:8000"
-    restart: unless-stopped
+      context: ./requirements/bonus/cadvisor
+      dockerfile: Dockerfile
     networks:
       - inception
+    ports:
+      - "8080:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    restart: always
 
+# Networks
 networks:
   inception:
     driver: bridge
 
+# Volumes
 volumes:
   wordpress_db:
       driver: local
