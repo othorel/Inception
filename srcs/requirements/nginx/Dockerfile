@@ -1,7 +1,5 @@
 ARG DEBIAN_VERSION
 FROM debian:${DEBIAN_VERSION:-bullseye-slim}
-# RUN adduser --disabled-password --gecos "" app
-# USER app
 
 RUN		apt update -y && \
 		apt install -y nginx openssl curl gettext-base && \
@@ -22,8 +20,8 @@ RUN openssl req -x509 -nodes -days 365 \
 	-subj "/C=FR/ST=IDF/L=Paris/O=42/OU=42/CN=${DOMAIN_NAME}/UID=${LOGIN}"
 
 COPY conf/nginx.conf.template /etc/nginx/nginx.conf.template
-RUN envsubst '${SSL_CERT} ${SSL_KEY} ${DOMAIN_NAME}' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf
 
+RUN envsubst '${SSL_CERT} ${SSL_KEY} ${DOMAIN_NAME}' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf
 RUN chmod 755 /var/www/html
 
 EXPOSE 443

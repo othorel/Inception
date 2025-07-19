@@ -9,7 +9,7 @@ WP_VOLUME = /home/$(USER)/data/wordpress
 ADMINER_VOLUME = /home/$(USER)/data/adminer
 VOLUMES = $(DB_VOLUME) $(WP_VOLUME) $(ADMINER_VOLUME)
 
-# Couleurs
+# Colors
 GREEN = \033[0;32m
 RED = \033[0;31m
 ORANGE = \033[0;33m
@@ -18,7 +18,7 @@ CYAN = \033[38;5;39m
 PURPLE = \033[38;5;63m
 RESET = \033[0m
 
-# Projet info
+# Project info
 all: header hostsed_add build
 
 header:
