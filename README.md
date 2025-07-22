@@ -3,7 +3,7 @@
 - A secure and modular **Docker-based infrastructure** using **Docker Compose** – 42 Project
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/your-username/inception/main/assets/inception-diagram.png" alt="Inception Diagram" />
+  <img src="https://github.com/othorel/Inception/blob/main/img/project.png" />
 </p>
 
 ---
