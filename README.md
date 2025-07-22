@@ -97,3 +97,44 @@ This command:
 - Starts all containers using Docker Compose
 
 ---
+
+## 📁 Project Structure
+
+<p align="center">
+  <img src="https://github.com/othorel/Inception/blob/main/img/tree.png" />
+</p>
+
+---
+
+## 🔐 Security
+
+- Only port 443 (HTTPS) is exposed externally
+- TLS encryption for both web and FTP services
+- Secrets managed via .env
+- Docker networks used for service isolation
+
+---
+
+## 🧪 Testing
+
+✅ Confirmed working with:
+- Browsers: Chrome, Firefox (HTTPS access)
+- FTP clients: FileZilla, lftp (TLS enabled)
+- WordPress: installation, Redis cache, uploads
+- Adminer: DB browsing, queries
+- Static site: loads on configured port
+- cAdvisor: accessible at localhost:8080
+
+---
+
+## 👨‍💻 Author
+
+- olthorel (42)
+
+---
+
+## 📜 License
+
+- This project is part of the 42 Network curriculum and is intended for educational use only.
+
+  ---
