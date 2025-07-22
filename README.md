@@ -88,4 +88,11 @@ git clone https://github.com/your-username/inception.git
 cd inception
 make
 ```
+
+This command:
+
+- Builds images
+- Creates volumes
+- Starts all containers using Docker Compose
+
 ---
