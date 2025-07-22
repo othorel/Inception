@@ -85,7 +85,7 @@ This project introduces best practices in **DevOps** and **web hosting**, all de
 ### 🔨 Installation
 
 ```bash
-git clone https://github.com/your-username/inception.git
+git clone git@github.com:othorel/Inception.git inception
 cd inception
 make
 ```
